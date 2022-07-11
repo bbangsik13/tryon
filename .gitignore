@@ -1,0 +1,2 @@
+#ignore checkpoints(file size is too big)
+checkpoints/
