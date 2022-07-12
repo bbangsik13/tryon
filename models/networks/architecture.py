@@ -30,7 +30,7 @@ class SPADEResnetBlock(nn.Module):
             semantic_nc = opt.semantic_nc + 1
         else:
             semantic_nc = opt.semantic_nc 
-        semantic_nc =6
+        semantic_nc = opt.label_nc + 1
 
 
         padding = dilation 

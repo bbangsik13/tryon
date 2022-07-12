@@ -1,2 +1,4 @@
 #ignore checkpoints(file size is too big)
 checkpoints/
+#ignore test results
+results/

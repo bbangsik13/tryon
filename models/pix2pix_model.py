@@ -44,7 +44,7 @@ class Pix2PixModel(torch.nn.Module):
     # can't parallelize custom functions, we branch to different
     # routines based on |mode|.
     def forward(self, data, mode):
-        input_semantics, real_image, masked_image = self.preprocess_input(data)
+        input_semantics, real_image, masked_image = self.preprocess_input(data,mode=mode)
         if mode == 'generator':
             g_loss, generated = self.compute_generator_loss(
                 input_semantics, real_image, masked_image)
@@ -108,24 +108,34 @@ class Pix2PixModel(torch.nn.Module):
     # transforming the label map to one-hot encoding
     # |data|: dictionary of the input data
 
-    def preprocess_input(self, data):
+    def preprocess_input(self, data,mode):
         # move to GPU and change data types
 
         if self.use_gpu():
-            inpaint_mask = data['inpaint mask'].cuda()
-            inpaint_img = data['inpaint img'].cuda()
-            inpaint_parse = data['inpaint parse'].cuda()
+            if mode == "inference":
+                input_mask = data['inpaint mask'].cuda()
+                input_img = data['inpaint img'].cuda()
+                input_parse = data['inpaint parse'].cuda()
+            else:
+                input_mask = data['swap mask'].cuda()
+                input_img = data['swap img'].cuda()
+                input_parse = data['swap parse'].cuda()
             ground_truth_img = data['ground truth img'].cuda()
         else:
-            inpaint_mask = data['inpaint mask']
-            inpaint_img = data['inpaint img']
-            inpaint_parse = data['inpaint parse']
+            if mode == "inference":
+                input_mask = data['inpaint mask']
+                input_img = data['inpaint img']
+                input_parse = data['inpaint parse']
+            else:
+                input_mask = data['swap mask']
+                input_img = data['swap img']
+                input_parse = data['swap parse']
             ground_truth_img = data['ground truth img']
 
-        inpaint_semantics = torch.cat([inpaint_parse,inpaint_mask],dim=1)
+        input_semantics = torch.cat([input_parse,input_mask],dim=1)
 
 
-        return inpaint_semantics, ground_truth_img, inpaint_img
+        return input_semantics, ground_truth_img, input_img
 
     def compute_generator_loss(self, input_semantics, real_image, masked_image):
         G_losses = {}
