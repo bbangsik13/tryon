@@ -89,13 +89,13 @@ class Pix2PixModel(torch.nn.Module):
     def initialize_networks(self, opt):
         netG = networks.define_G(opt)
         netD = networks.define_D(opt) if opt.isTrain else None
-        summary(netG.cpu(),[(6,1024,768),(3,1024,768)],device='cpu')
-        exit(0)
-        '''f = open(os.path.join(opt.checkpoints_dir,opt.name,"network.txt"),"w")
+        '''summary(netG.cpu(),[(6,1024,768),(3,1024,768)],device='cpu')
+        exit(0)'''
+        f = open(os.path.join(opt.checkpoints_dir,opt.name,"network.txt"),"w")
         print(netG,file=f)
         print('\n'*10,file=f)
         print(netD,file=f)
-        f.close()'''
+        f.close()
 
         if not opt.isTrain or opt.continue_train:
             netG = util.load_network(netG, 'G', opt.which_epoch, opt)
