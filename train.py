@@ -54,8 +54,9 @@ def main():
                 visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
 
             if iter_counter.needs_displaying():
-                
-                visuals = OrderedDict([('input_label', trainer.get_semantics().max(dim=1)[1].cpu().unsqueeze(1)),
+                #print(trainer.get_semantics().shape)
+                visuals = OrderedDict([('input_label', trainer.get_semantics().cpu()[:,:-1,:,:]),
+                                       ('mask', trainer.get_semantics().cpu()[:, -1, :, :]),
                                     ('synthesized_image', trainer.get_latest_generated()),
                                     ('real_image', data_i['ground truth img']),
                                     ('masked', trainer.get_mask())])

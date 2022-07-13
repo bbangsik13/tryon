@@ -217,9 +217,11 @@ class VitonDataset(BaseDataset):
         inpaint_mask_tensor[inpaint_mask_tensor < 0] = 0
 
         if cloth_type == "top":
-            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[5] * warped_cloth_mask_tensor)
+            #swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[5] * warped_cloth_mask_tensor)
+            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[5])
         else:
-            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * warped_cloth_mask_tensor)
+            #swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * warped_cloth_mask_tensor)
+            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[6])
         swap_mask_tensor[swap_mask_tensor > 0] = 1
         swap_mask_tensor[swap_mask_tensor < 0] = 0
         #plt.imshow(np.transpose(((swap_mask_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))),plt.title('swap_mask_tensor'),plt.show()
@@ -231,21 +233,37 @@ class VitonDataset(BaseDataset):
         #plt.imshow(np.transpose(((inpaint_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))),plt.title('inpaint img'),plt.show()
 
         if cloth_type == "top":
+            #swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
+            #                 agnostic_mask_tensor * warped_cloth_mask_tensor *new_ground_truth_parse_tensor[5] * ground_truth_img_tensor
             swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-                             agnostic_mask_tensor * warped_cloth_mask_tensor *new_ground_truth_parse_tensor[5] * ground_truth_img_tensor
+                              agnostic_mask_tensor * new_ground_truth_parse_tensor[5] * ground_truth_img_tensor
         else:
+            #swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
+            #                  agnostic_mask_tensor * warped_cloth_mask_tensor * new_ground_truth_parse_tensor[
+            #                      6] * ground_truth_img_tensor
             swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-                              agnostic_mask_tensor * warped_cloth_mask_tensor * new_ground_truth_parse_tensor[
-                                  6] * ground_truth_img_tensor
+                              agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * ground_truth_img_tensor
         #plt.imshow(np.transpose(((swap_img_tensor.numpy() + 1) / 2 * 255).astype(np.uint8), (1, 2, 0))), plt.title('swap img'), plt.show()
         # inpaint parse
         inpaint_parse_tensor = torch.cat((new_ground_truth_parse_tensor*(1-agnostic_mask_tensor),
                                    warped_cloth_mask_tensor*agnostic_mask_tensor,
                                    new_densepose_label_tensor*inpaint_mask_tensor),dim=0)
 
-        swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
-                                          warped_cloth_mask_tensor * agnostic_mask_tensor,
-                                          new_densepose_label_tensor * swap_mask_tensor), dim=0)
+        if cloth_type == "top":
+            #swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
+            #                              warped_cloth_mask_tensor * agnostic_mask_tensor * new_ground_truth_parse_tensor[5],
+            #                              new_densepose_label_tensor * swap_mask_tensor), dim=0)
+            swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
+                                           agnostic_mask_tensor * new_ground_truth_parse_tensor[5],
+                                           new_densepose_label_tensor * swap_mask_tensor), dim=0)
+        else:
+            #swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
+            #                               warped_cloth_mask_tensor * agnostic_mask_tensor *
+            #                               new_ground_truth_parse_tensor[6],
+            #                               new_densepose_label_tensor * swap_mask_tensor), dim=0)
+            swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
+                                           agnostic_mask_tensor * new_ground_truth_parse_tensor[6],
+                                           new_densepose_label_tensor * swap_mask_tensor), dim=0)
 
         '''plt.subplot(2,2,1),plt.imshow(util.tensor2label(new_ground_truth_parse_tensor, 8)),plt.title('new ground truth parse')
         plt.subplot(2,2,2),plt.imshow(util.tensor2label(new_densepose_label_tensor, 8)),plt.title('new densepose label')

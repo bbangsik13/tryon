@@ -60,7 +60,8 @@ def main():
             # print('process image... %s' % img_path[b])
 
 
-            visuals = OrderedDict([('input_label', semantics[b]),
+            visuals = OrderedDict([('input_label', semantics[b][:-1]),
+                                   ('input mask', semantics[b][:1]),
                                    ('synthesized_image', generated[b]),
                                    ('real_image', data_i['ground truth img'][b]),
                                    ('masked', masked_image[b])])
