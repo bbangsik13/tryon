@@ -15,7 +15,7 @@ from models.pix2pix_model import Pix2PixModel
 
 from util.visualizer import Visualizer
 from util import html
-
+from tqdm import tqdm
 import numpy as np
 from skimage.metrics import structural_similarity as compare_ssim
 from skimage.color import rgb2gray
@@ -40,7 +40,7 @@ def main():
     # test
     ssim = []
     acc = []
-    for i, data_i in enumerate(dataloader):
+    for i, data_i in enumerate(tqdm(dataloader)):
         if i * opt.batchSize >= opt.how_many:
             break
 

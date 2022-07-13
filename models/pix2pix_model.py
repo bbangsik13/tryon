@@ -9,7 +9,7 @@ import torchvision.transforms as t
 import models.networks as networks
 import util.util as util
 from random import randint, random
-from torchsummary import summary
+#from torchsummary import summary
 import numpy as np
 
 class Pix2PixModel(torch.nn.Module):
