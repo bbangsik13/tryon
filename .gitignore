@@ -4,4 +4,5 @@ checkpoints/
 results/
 #ignore shell
 test.sh
+#ignore shell
 train.sh

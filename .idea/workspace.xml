@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="96f15d4c-8995-4f25-a86b-4d9df58a0cb8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/viton_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/viton_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/train.sh" beforeDir="false" afterPath="$PROJECT_DIR$/train.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
