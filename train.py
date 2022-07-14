@@ -55,8 +55,8 @@ def main():
 
             if iter_counter.needs_displaying():
                 #print(trainer.get_semantics().shape)
-                visuals = OrderedDict([('input_label', trainer.get_semantics().cpu()[:,:-1,:,:]),
-                                       ('mask', trainer.get_semantics().cpu()[:, -1, :, :]),
+                visuals = OrderedDict([('input_label', trainer.get_semantics().cpu()[0:1,:-1,:,:]),
+                                       ('mask', trainer.get_semantics().cpu()[0:1, -1, :, :]),
                                     ('synthesized_image', trainer.get_latest_generated()),
                                     ('real_image', data_i['ground truth img']),
                                     ('masked', trainer.get_mask())])

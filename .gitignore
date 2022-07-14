@@ -2,3 +2,6 @@
 checkpoints/
 #ignore test results
 results/
+#ignore shell
+test.sh
+train.sh

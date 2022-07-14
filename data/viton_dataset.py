@@ -148,16 +148,17 @@ class VitonDataset(BaseDataset):
         23:glove
         '''
         new_ground_truth_parse = np.zeros(
-            (ground_truth_parse.shape[0], ground_truth_parse.shape[1], 8), dtype=np.float32)
+            (ground_truth_parse.shape[0], ground_truth_parse.shape[1], 9), dtype=np.float32)
         parse_label_map = {
-            "background": [0,1,2,3,6,8,11,12,13,18,19,21,22,23],
-            "arm": [14,15],
-            "leg": [16,17],
-            "neck": [4,10],
-            "torso skin": [20],
-            "top":[5],
-            "bottom":[9],
-            "outer":[7]
+            "background": [0], # only background
+            "arm": [14,15], # integrate arms
+            "leg": [16,17], # integrate legs
+            "neck": [4,10], # neck & face
+            "torso skin": [20], # belly
+            "top":[5], # top cloth
+            "bottom":[9], # bottom cloth
+            "outer":[7], # outter
+            "etc":[1,2,3,6,8,11,12,13,18,19,21,22,23] # accessory & hair & not defined label
         }
         for i, key in enumerate(parse_label_map.keys()):
             for l in parse_label_map[key]:
@@ -245,11 +246,22 @@ class VitonDataset(BaseDataset):
                               agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * ground_truth_img_tensor
         #plt.imshow(np.transpose(((swap_img_tensor.numpy() + 1) / 2 * 255).astype(np.uint8), (1, 2, 0))), plt.title('swap img'), plt.show()
         # inpaint parse
-        inpaint_parse_tensor = torch.cat((new_ground_truth_parse_tensor*(1-agnostic_mask_tensor),
-                                   warped_cloth_mask_tensor*agnostic_mask_tensor,
-                                   new_densepose_label_tensor*inpaint_mask_tensor),dim=0)
-
+        inpaint_parse_tensor = new_ground_truth_parse_tensor*(1-agnostic_mask_tensor)
+        for i in range(5):
+            inpaint_parse_tensor[i:i+1,:,:] += new_densepose_label_tensor[i:i+1,:,:]*inpaint_mask_tensor
         if cloth_type == "top":
+            inpaint_parse_tensor[5:6,:,:] += warped_cloth_mask_tensor*agnostic_mask_tensor
+        else:
+            inpaint_parse_tensor[6:7,:,:] += warped_cloth_mask_tensor*agnostic_mask_tensor
+
+        swap_parse_tensor = new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor)
+        for i in range(5):
+            swap_parse_tensor[i:i+1,:,:] += new_densepose_label_tensor[i:i+1,:,:] * swap_mask_tensor
+        if cloth_type == "top":
+            swap_parse_tensor[5:6,:,:] += new_ground_truth_parse_tensor[5:6,:,:] * agnostic_mask_tensor
+        else:
+            swap_parse_tensor[6:7,:,:] += new_ground_truth_parse_tensor[6:7,:,:] * agnostic_mask_tensor
+        '''if cloth_type == "top":
             #swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
             #                              warped_cloth_mask_tensor * agnostic_mask_tensor * new_ground_truth_parse_tensor[5],
             #                              new_densepose_label_tensor * swap_mask_tensor), dim=0)
@@ -264,11 +276,13 @@ class VitonDataset(BaseDataset):
             swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
                                            agnostic_mask_tensor * new_ground_truth_parse_tensor[6],
                                            new_densepose_label_tensor * swap_mask_tensor), dim=0)
-
-        '''plt.subplot(2,2,1),plt.imshow(util.tensor2label(new_ground_truth_parse_tensor, 8)),plt.title('new ground truth parse')
-        plt.subplot(2,2,2),plt.imshow(util.tensor2label(new_densepose_label_tensor, 8)),plt.title('new densepose label')
-        plt.subplot(2,2,3),plt.imshow(np.transpose(agnostic_mask_tensor.numpy(),(1,2,0))),plt.title('agnostic mask')
-        plt.subplot(2,2,4),plt.imshow(util.tensor2label(inpaint_parse_tensor, inpaint_parse_tensor.shape[0])),plt.title('inpaint parse')
+'''
+        '''plt.subplot(2,3,1),plt.imshow(util.tensor2label(new_ground_truth_parse_tensor, 8)),plt.title('new ground truth parse')
+        plt.subplot(2,3,2),plt.imshow(util.tensor2label(new_densepose_label_tensor, 8)),plt.title('new densepose label')
+        plt.subplot(2,3,3),plt.imshow(np.transpose(agnostic_mask_tensor.numpy(),(1,2,0))),plt.title('agnostic mask')
+        plt.subplot(2,3,4),plt.imshow(util.tensor2label(swap_parse_tensor, swap_parse_tensor.shape[0])),plt.title('swap parse')
+        plt.subplot(2,3,5),plt.imshow(util.tensor2label(inpaint_parse_tensor, inpaint_parse_tensor.shape[0])),plt.title('inpaint parse')
+        plt.subplot(2,3,6),plt.imshow(((np.transpose(swap_img_tensor.numpy(),(1,2,0))+1)/2*255).astype(np.uint8)),plt.title('warped_cloth')
         plt.show()'''
         #plt.imshow(util.tensor2label(swap_parse_tensor, swap_parse_tensor.shape[0])),plt.show()
 
