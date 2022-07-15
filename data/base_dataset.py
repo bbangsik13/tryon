@@ -69,6 +69,8 @@ def get_transform(opt, params, method=Image.BICUBIC, normalize=True, toTensor=Tr
     if opt.isTrain and not opt.no_flip:
         transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
 
+    if opt.augmentation: # gamma correction
+        transform_list.append(lambda img: transforms.functional.adjust_gamma(img,(np.random.random(1)-0.5)+1))
     if toTensor:
         transform_list += [transforms.ToTensor()]
 

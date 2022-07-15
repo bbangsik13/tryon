@@ -145,9 +145,8 @@ class Pix2PixModel(torch.nn.Module):
 
         pred_fake, pred_real = self.discriminate(
             input_semantics, fake_image, real_image)
-
-        G_losses['GAN'] = self.criterionGAN(pred_fake, True,
-                                            for_discriminator=False)
+        mask = 1 - input_semantics[:,-1:,:,:]
+        G_losses['GAN'] = self.criterionGAN(pred_fake,True, torch.cuda.FloatTensor(1).fill_(1.0).expand_as(mask),for_discriminator=False)
 
         if not self.opt.no_ganFeat_loss:
             num_D = len(pred_fake)
@@ -181,12 +180,12 @@ class Pix2PixModel(torch.nn.Module):
         pred_fake, pred_real = self.discriminate(
             input_semantics, fake_image, real_image)
 
-        mask = input_semantics[:,[-1]]
+        mask = 1-input_semantics[:,-1:,:,:]
 
 
-        D_losses['D_Fake'] = self.criterionGAN(pred_fake, False,
+        D_losses['D_Fake'] = self.criterionGAN(pred_fake,False, mask,
                                                for_discriminator=True)
-        D_losses['D_real'] = self.criterionGAN(pred_real, True,
+        D_losses['D_real'] = self.criterionGAN(pred_real,True ,torch.cuda.FloatTensor(1).fill_(1.0).expand_as(mask),
                                                for_discriminator=True)
 
         return D_losses

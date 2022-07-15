@@ -22,6 +22,8 @@ class VitonDataset(BaseDataset):
         parser.add_argument('--no_pairing_check', action='store_true',
                             help='If specified, skip sanity check of correct label-image file pairing')
         parser.add_argument('--bottom_agnostic', action='store_true',help='use when bottom tryon')
+        parser.add_argument('--augmentation', action='store_true',help='data augmentation')
+
         return parser
 
     def initialize(self, opt):
@@ -69,7 +71,6 @@ class VitonDataset(BaseDataset):
         transform_img = get_transform(
             self.opt, params, method=Image.NEAREST, normalize=True, toTensor=True, mask=False)
         ground_truth_img_tensor = transform_img(ground_truth_img)
-
         # ground_truth_parse
         ground_truth_parse_path = osp.join(
             self.ground_truth_parse_dir, self.data_ids[index] + '_model.png')
@@ -89,7 +90,10 @@ class VitonDataset(BaseDataset):
         part_arrays = self.get_part_arrays(ground_truth_parse, pose_data)
         agnostic_mask = self.get_agnostic_mask(
             part_arrays, bottom_agnostic=self.bottom_agnostic)
-        agnostic_mask = agnostic_mask[0]+agnostic_mask[1]+agnostic_mask[2]+agnostic_mask[3]
+        if self.opt.bottom_agnostic:
+            agnostic_mask = agnostic_mask[0]+agnostic_mask[1]+agnostic_mask[2]
+        else:
+            agnostic_mask = agnostic_mask[0]+agnostic_mask[1]+agnostic_mask[2]+agnostic_mask[3]
 
         agnostic_mask_tensor = torch.from_numpy(agnostic_mask[np.newaxis,:,:])
         agnostic_mask_tensor[agnostic_mask_tensor > 0] = 1
@@ -211,6 +215,17 @@ class VitonDataset(BaseDataset):
         new_densepose_label = np.transpose(new_densepose_label, (2, 0, 1))
         new_densepose_label_tensor = torch.from_numpy(new_densepose_label)
 
+        if self.opt.augmentation:# data augmentation-agnostic_mask
+            agnostic_mask = cv2.dilate(agnostic_mask,np.ones((3,3)),iterations=np.random.randint(14)+1)
+            if cloth_type == "top":
+                agnostic_mask = agnostic_mask * (new_ground_truth_parse[0]+new_ground_truth_parse[1]
+                                                 +new_ground_truth_parse[3]+new_ground_truth_parse[5])
+            else:
+                agnostic_mask = agnostic_mask * (new_ground_truth_parse[0] + new_ground_truth_parse[2]
+                                                 + new_ground_truth_parse[6])
+            agnostic_mask_tensor = torch.from_numpy(agnostic_mask[np.newaxis, :, :])
+            agnostic_mask_tensor[agnostic_mask_tensor > 0] = 1
+            agnostic_mask_tensor[agnostic_mask_tensor < 0] = 0
 
         # inpaint mask
         inpaint_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor*warped_cloth_mask_tensor)
@@ -277,6 +292,8 @@ class VitonDataset(BaseDataset):
                                            agnostic_mask_tensor * new_ground_truth_parse_tensor[6],
                                            new_densepose_label_tensor * swap_mask_tensor), dim=0)
 '''
+        #print(swap_img_tensor[:,56,43])
+        #print(swap_img_tensor[:,401,468])
         '''plt.subplot(2,3,1),plt.imshow(util.tensor2label(new_ground_truth_parse_tensor, 8)),plt.title('new ground truth parse')
         plt.subplot(2,3,2),plt.imshow(util.tensor2label(new_densepose_label_tensor, 8)),plt.title('new densepose label')
         plt.subplot(2,3,3),plt.imshow(np.transpose(agnostic_mask_tensor.numpy(),(1,2,0))),plt.title('agnostic mask')
