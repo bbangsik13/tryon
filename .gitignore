@@ -6,3 +6,5 @@ results/
 test.sh
 #ignore shell
 train.sh
+#ignore shell
+flask_viewer.sh
