@@ -62,9 +62,13 @@ class VitonDataset(BaseDataset):
     def __getitem__(self, index):
 
         ###############################################load data########################################################
+
+        model_id = '1657518529204' # self.data_ids[index]
+        cloth_id = self.data_ids[index]
+
         # ground truth img
         ground_truth_img_path = osp.join(
-            self.ground_truth_img_dir, self.data_ids[index] + '_model.jpg')
+            self.ground_truth_img_dir, model_id + '_model.jpg')
         ground_truth_img = Image.open(ground_truth_img_path)
         ground_truth_img = ground_truth_img.convert('RGB')
         params = get_params(self.opt, ground_truth_img.size)
@@ -73,14 +77,14 @@ class VitonDataset(BaseDataset):
         ground_truth_img_tensor = transform_img(ground_truth_img)
         # ground_truth_parse
         ground_truth_parse_path = osp.join(
-            self.ground_truth_parse_dir, self.data_ids[index] + '_model.png')
+            self.ground_truth_parse_dir, model_id + '_model.png')
         ground_truth_parse = Image.open(ground_truth_parse_path)
         ground_truth_parse = ground_truth_parse
         ground_truth_parse = np.array(ground_truth_parse)
 
         # openpose_json
         openpose_json_path = osp.join(
-            self.openpose_json_dir, self.data_ids[index] + '_model_keypoints.json')
+            self.openpose_json_dir, model_id + '_model_keypoints.json')
         with open(openpose_json_path, 'r') as f:
             pose_label = json.load(f)
             pose_data = pose_label['people'][0]['pose_keypoints_2d']
@@ -104,7 +108,7 @@ class VitonDataset(BaseDataset):
         # warped cloth image
 
         warped_cloth_img_path = osp.join(
-            self.warped_cloth_img_dir, self.data_ids[index] + '_' + cloth_type + '.png')
+            self.warped_cloth_img_dir, cloth_id + '_' + cloth_type + '.png')
 
         warped_cloth_img = Image.open(warped_cloth_img_path)
         warped_cloth_img = warped_cloth_img.convert('RGB')
@@ -112,7 +116,7 @@ class VitonDataset(BaseDataset):
 
         # warped cloth mask
         warped_cloth_mask_path = osp.join(
-            self.warped_cloth_mask_dir, self.data_ids[index] + '_' + cloth_type + '.png')
+            self.warped_cloth_mask_dir, cloth_id + '_' + cloth_type + '.png')
         warped_cloth_mask = Image.open(warped_cloth_mask_path)
         warped_cloth_mask = np.array(warped_cloth_mask.convert('L'))
 
@@ -121,7 +125,7 @@ class VitonDataset(BaseDataset):
         warped_cloth_mask_tensor[warped_cloth_mask_tensor < 0] = 0
         # densepose label
         densepose_label_path = osp.join(
-            self.densepose_label_dir, self.data_ids[index] + '_model.npy')
+            self.densepose_label_dir, model_id + '_model.npy')
         densepose_label = (np.load(densepose_label_path)[:, :, 0]).astype(np.uint8)
 
         ###############################################convert data#####################################################
@@ -219,7 +223,7 @@ class VitonDataset(BaseDataset):
             agnostic_mask = cv2.dilate(agnostic_mask,np.ones((3,3)),iterations=np.random.randint(14)+1)
             if cloth_type == "top":
                 agnostic_mask = agnostic_mask * (new_ground_truth_parse[0]+new_ground_truth_parse[1]
-                                                 +new_ground_truth_parse[3]+new_ground_truth_parse[5])
+                                                +((ground_truth_parse==10)*1).astype(np.float32) +new_ground_truth_parse[5])
             else:
                 agnostic_mask = agnostic_mask * (new_ground_truth_parse[0] + new_ground_truth_parse[2]
                                                  + new_ground_truth_parse[6])
@@ -228,7 +232,7 @@ class VitonDataset(BaseDataset):
             agnostic_mask_tensor[agnostic_mask_tensor < 0] = 0
 
         # inpaint mask
-        inpaint_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor*warped_cloth_mask_tensor)
+        inpaint_mask_tensor = (agnostic_mask_tensor - warped_cloth_mask_tensor)
         inpaint_mask_tensor[inpaint_mask_tensor > 0] = 1
         inpaint_mask_tensor[inpaint_mask_tensor < 0] = 0
 
@@ -244,8 +248,8 @@ class VitonDataset(BaseDataset):
 
 
         # inpaint img
-        inpaint_img_tensor = (1-agnostic_mask_tensor)*ground_truth_img_tensor + \
-            agnostic_mask_tensor * warped_cloth_mask_tensor * warped_cloth_img_tensor
+        inpaint_img_tensor = (1-agnostic_mask_tensor)*(1-warped_cloth_mask_tensor)*ground_truth_img_tensor + \
+            warped_cloth_mask_tensor * warped_cloth_img_tensor
         #plt.imshow(np.transpose(((inpaint_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))),plt.title('inpaint img'),plt.show()
 
         if cloth_type == "top":
@@ -261,13 +265,13 @@ class VitonDataset(BaseDataset):
                               agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * ground_truth_img_tensor
         #plt.imshow(np.transpose(((swap_img_tensor.numpy() + 1) / 2 * 255).astype(np.uint8), (1, 2, 0))), plt.title('swap img'), plt.show()
         # inpaint parse
-        inpaint_parse_tensor = new_ground_truth_parse_tensor*(1-agnostic_mask_tensor)
+        inpaint_parse_tensor = new_ground_truth_parse_tensor*(1-agnostic_mask_tensor)*(1-warped_cloth_mask_tensor)
         for i in range(5):
             inpaint_parse_tensor[i:i+1,:,:] += new_densepose_label_tensor[i:i+1,:,:]*inpaint_mask_tensor
         if cloth_type == "top":
-            inpaint_parse_tensor[5:6,:,:] += warped_cloth_mask_tensor*agnostic_mask_tensor
+            inpaint_parse_tensor[5:6,:,:] += warped_cloth_mask_tensor
         else:
-            inpaint_parse_tensor[6:7,:,:] += warped_cloth_mask_tensor*agnostic_mask_tensor
+            inpaint_parse_tensor[6:7,:,:] += warped_cloth_mask_tensor
 
         swap_parse_tensor = new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor)
         for i in range(5):
@@ -309,7 +313,6 @@ class VitonDataset(BaseDataset):
         plt.subplot(2,2,3),plt.imshow(tensor2label(densepose_label_tensor,5)),plt.title('parse')
         plt.subplot(2,2,4),plt.imshow(tensor2label(inpaint_parse_tensor,5)),plt.title('inpaint parse')
         plt.show()'''
-
         input_dict = {'inpaint mask': inpaint_mask_tensor,
                       'inpaint img': inpaint_img_tensor,
                       'inpaint parse': inpaint_parse_tensor,
@@ -317,7 +320,7 @@ class VitonDataset(BaseDataset):
                       'swap img': swap_img_tensor,
                       'swap parse': swap_parse_tensor,
                       'ground truth img': ground_truth_img_tensor,
-                      'path': ground_truth_img_path,
+                      'path': warped_cloth_img_path,
                       }
 
         # Give subclasses a chance to modify the final output

@@ -1,10 +1,10 @@
 python train.py \
-       	--gpu_ids "0" \
-	--batchSize 1 \
-	--name Fashionade_BOT \
+       	--gpu_ids "2,3" \
+	--batchSize 2 \
+	--name Fashionade_TOP_v5 \
 	--niter 25 \
 	--niter_decay 25 \
-	--dataroot dataset/Fashionade_train_sample \
+	--dataroot /data/meer/ClothWarping/PF-AFN/PF-AFN_train/results/PBAFN_fashionade_fashionadetop_0708 \
 	--dataset_mode viton \
 	--no_flip \
 	--preprocess_mode none \
