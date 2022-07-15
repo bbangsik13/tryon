@@ -2,12 +2,97 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="96f15d4c-8995-4f25-a86b-4d9df58a0cb8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/base_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/base_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/viton_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/viton_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/networks/loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/networks/loss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/pix2pix_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/pix2pix_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.sh" beforeDir="false" afterPath="$PROJECT_DIR$/train.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/tryon.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.nfs00000001a83997ad00000001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/ade20k_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/ade20kbox_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/base_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/basebox_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/cityscapes_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/cityscapesbox_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/coco_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/custom_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/facades_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/image_folder.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/landscapes_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pix2pix_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/segmentation_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/viton_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/densepose_label/165621431576832512_model.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/ground_truth_img/165621431576832512_model.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/ground_truth_parse/165621431576832512_model.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/openpose_json/165621431576832512_model_keypoints.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/warped_cloth_img/165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/Fashionade_train_sample/warped_cloth_mask/165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/agnostic_img/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/agnostic_mask/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/densepose_label/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/ground_truth_img/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/warped_cloth_img/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/train_sample/warped_cloth_mask/1027_1027_720_A_A005_169_012_178_A005_000_1026048_F.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/flask_viewer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/flask_viewer.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/batchnorm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/batchnorm_reimpl.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/comm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/replicate.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/sync_batchnorm/unittest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/tests/test_numeric_batchnorm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/tests/test_numeric_batchnorm_v2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/Synchronized-BatchNorm-PyTorch/tests/test_sync_batchnorm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/architecture.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/base_network.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/discriminator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/loss.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/normalization.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/batchnorm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/batchnorm_reimpl.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/comm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/replicate.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/networks/sync_batchnorm/unittest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/pix2pix_model.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/options/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/options/base_options.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/options/test_options.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/options/train_options.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/Fashionade_TOP_SESAME_v2/val_latest/images/input_label/165621431576832512_model_165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/Fashionade_TOP_SESAME_v2/val_latest/images/masked/165621431576832512_model_165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/Fashionade_TOP_SESAME_v2/val_latest/images/real_image/165621431576832512_model_165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/Fashionade_TOP_SESAME_v2/val_latest/images/synthesized_image/165621431576832512_model_165621431576832512_top.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/Fashionade_TOP_SESAME_v2/val_latest/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/test_ade20k_addition.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/test_ade20k_removal.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/test_cityscapes_addition.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/test_cityscapes_removal.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/train_ade20k.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/train_cityscapes.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/image_viewer.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainers/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainers/pix2pix_trainer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/html.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/iter_counter.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/mode_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/util.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/visualizer.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
