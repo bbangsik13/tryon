@@ -8,5 +8,6 @@ test.sh
 train.sh
 #ignore shell
 flask_viewer.sh
+<<<<<<< HEAD
 #ignore dataset
 dataset/baek_sample/
