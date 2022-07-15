@@ -64,16 +64,17 @@ class GANLoss(nn.Module):
             return F.mse_loss(input, target_tensor)
         elif self.gan_mode == 'hinge':
             if for_discriminator:
-                target_tensor = self.get_target_tensor(input, target)
+                #target_tensor = self.get_target_tensor(input, target)
                 if target_is_real:
-                    minval = torch.min(input - 1, target_tensor -1)
+                    minval = torch.min(input - 1, self.get_zero_tensor(input))
                     loss = -torch.mean(minval)
                 else:
-                    minval = torch.min(-input - 1, target_tensor-1)
+                    minval = torch.min(-input - 1, self.get_zero_tensor(input))
                     loss = -torch.mean(minval)
             else:
                 assert target_is_real, "The generator's hinge loss must be aiming for real"
                 loss = -torch.mean(input)
+            #print(torch.unique(input))
             return loss
         else:
             # wgan
