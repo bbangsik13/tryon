@@ -70,7 +70,7 @@ def get_transform(opt, params, method=Image.BICUBIC, normalize=True, toTensor=Tr
         transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
 
     if opt.augmentation: # gamma correction
-        transform_list.append(lambda img: transforms.functional.adjust_gamma(img,(np.random.random(1)[0])*2.5+0.5))
+        transform_list.append(lambda img: transforms.functional.adjust_gamma(img,np.random.uniform(low=0.5,high=1.5,size=1)[0]))
     if toTensor:
         transform_list += [transforms.ToTensor()]
 

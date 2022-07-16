@@ -281,6 +281,11 @@ class VitonDataset(BaseDataset):
             swap_parse_tensor[5:6,:,:] += new_ground_truth_parse_tensor[5:6,:,:] * agnostic_mask_tensor
         else:
             swap_parse_tensor[6:7,:,:] += new_ground_truth_parse_tensor[6:7,:,:] * agnostic_mask_tensor
+        inpaint_skin_mask_tensor = inpaint_parse_tensor[1:2,:,:] + inpaint_parse_tensor[3:4,:,:]+inpaint_parse_tensor[4:5,:,:]#+inpaint_parse_tensor[2:3,:,:]
+        swap_skin_mask_tensor = swap_parse_tensor[1:2,:,:] + swap_parse_tensor[3:4,:,:]+swap_parse_tensor[4:5,:,:]#+swap_parse_tensor[2:3,:,:]
+
+        swap_parse_tensor = torch.cat([swap_parse_tensor,swap_skin_mask_tensor],dim=0)
+        inpaint_parse_tensor = torch.cat([inpaint_parse_tensor,inpaint_skin_mask_tensor],dim=0)
         '''if cloth_type == "top":
             #swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
             #                              warped_cloth_mask_tensor * agnostic_mask_tensor * new_ground_truth_parse_tensor[5],
