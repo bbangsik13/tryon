@@ -63,7 +63,8 @@ class VitonDataset(BaseDataset):
 
         ###############################################load data########################################################
 
-        model_id = self.data_ids[index] #'1657518529204' #
+        model_id = self.data_ids[index] 
+        #model_id = '1657518529204' #
         cloth_id = self.data_ids[index]
 
         # ground truth img
