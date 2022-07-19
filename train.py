@@ -20,7 +20,7 @@ def main():
     # parse options
     opt = TrainOptions().parse()
     if opt.use_wandb:
-        wandb.init(project=opt.name,reinit=True)
+        wandb.init(project=opt.name)
         wandb.config.update(opt)
     # print options to help debugging
     print(' '.join(sys.argv))
