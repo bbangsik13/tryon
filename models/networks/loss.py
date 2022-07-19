@@ -40,10 +40,11 @@ class GANLoss(nn.Module):
     def get_target_tensor(self, input, target):
         #print(input.shape)
         #print(target.shape)
-        target = F.interpolate(target,(input.shape[2],input.shape[3]),mode='bilinear')
+        target = F.interpolate(target.detach(),(input.shape[2],input.shape[3]),mode='bilinear')
         #print(target.shape)
         target[target == 1.0] = 1.0
         target[target != 1.0] = 0.0
+        target.requires_grad_(False)
         #import matplotlib.pyplot as plt
         #plt.imshow(target.cpu().numpy()[0,0,:,:]),plt.show()
         return target
@@ -64,19 +65,24 @@ class GANLoss(nn.Module):
             return F.mse_loss(input, target_tensor)
         elif self.gan_mode == 'hinge':
             if for_discriminator:
-                target_tensor = self.get_target_tensor(input, target)
-                target_tensor[target_tensor==0] = -1.0
-                '''import matplotlib.pyplot as plt
-                plt.imshow(target_tensor[0,0,:,:].cpu().numpy()),plt.show()'''
+                
                 if target_is_real:
                     minval = torch.min(input - 1, self.get_zero_tensor(input))
                     loss = -torch.mean(minval)
                 else:
-                    minval = torch.min(input*target_tensor - 1, self.get_zero_tensor(input))
+                    target_tensor = self.get_target_tensor(input, target)
+                    target_tensor[target_tensor==0] = -1.0
+                    true_num = target_tensor.shape[2]*target_tensor.shape[3] + torch.sum(target_tensor)
+                    fake_num = 2*target_tensor.shape[2]*target_tensor.shape[3]-true_num
+                    fake_rate_tensor = target_tensor.clone().detach()
+                    fake_rate_tensor[target_tensor==-1.0]=true_num/(fake_num+1)
+                    '''import matplotlib.pyplot as plt
+                    plt.imshow(target_tensor[0,0,:,:].cpu().numpy()),plt.show()'''
+                    minval = torch.min((input*target_tensor - 1)*fake_rate_tensor, self.get_zero_tensor(input))
                     loss = -torch.mean(minval)
             else:
                 assert target_is_real, "The generator's hinge loss must be aiming for real"
-                loss = -torch.mean(torch.min(input-1,self.get_zero_tensor(input)))
+                loss = -torch.mean(torch.min(input,self.get_zero_tensor(input)))
             return loss
         else:
             # wgan

@@ -26,7 +26,7 @@ def main():
     dataloader = data.create_dataloader(opt)
     model = Pix2PixModel(opt)
 
-    model.eval()
+    model
 
     visualizer = Visualizer(opt)
 

@@ -10,3 +10,5 @@ train.sh
 flask_viewer.sh
 #ignore dataset
 dataset/baek_sample/
+#ignore wandb
+wandb/

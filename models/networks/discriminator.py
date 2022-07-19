@@ -115,7 +115,8 @@ class SesameNLayerDiscriminator(BaseNetwork):
 
     def compute_D_input_nc(self, opt):
         label_nc = opt.label_nc
-        input_nc = label_nc + opt.output_nc + 1
+        input_nc = label_nc + opt.output_nc# + 1
+        #print(input_nc)
 
             
         return input_nc

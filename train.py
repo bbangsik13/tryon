@@ -13,11 +13,15 @@ import data
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
 from trainers.pix2pix_trainer import Pix2PixTrainer
+import wandb
+from tqdm import tqdm
 
 def main():
     # parse options
     opt = TrainOptions().parse()
-
+    if opt.use_wandb:
+        wandb.init(project=opt.name,reinit=True)
+        wandb.config.update(opt)
     # print options to help debugging
     print(' '.join(sys.argv))
 
@@ -26,6 +30,8 @@ def main():
 
     # create trainer for our model
     trainer = Pix2PixTrainer(opt)
+    if opt.use_wandb:
+        wandb.watch(trainer.pix2pix_model)
 
     # create tool for counting iterations
     iter_counter = IterationCounter(opt, len(dataloader))
@@ -35,7 +41,7 @@ def main():
 
     for epoch in iter_counter.training_epochs():
         iter_counter.record_epoch_start(epoch)
-        for i, data_i in enumerate(dataloader, start=iter_counter.epoch_iter):
+        for i, data_i in enumerate(tqdm(dataloader), start=iter_counter.epoch_iter):
             iter_counter.record_one_iteration()
 
             # Training
@@ -49,9 +55,14 @@ def main():
             # Visualizations
             if iter_counter.needs_printing():
                 losses = trainer.get_latest_losses()
-                visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
-                                                losses, iter_counter.time_per_iter)
-                visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
+                if opt.use_wandb:
+                    errors ={}
+                    for tag, value in losses.items():
+                        value = value.mean().float()
+                        errors[tag]=value
+                    wandb.log(errors)
+                #visualizer.print_current_errors(epoch, iter_counter.epoch_iter,losses, iter_counter.time_per_iter)
+                #visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
 
             if iter_counter.needs_displaying():
                 #print(trainer.get_semantics().shape)
