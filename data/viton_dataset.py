@@ -21,7 +21,7 @@ class VitonDataset(BaseDataset):
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--no_pairing_check', action='store_true',
                             help='If specified, skip sanity check of correct label-image file pairing')
-        parser.add_argument('--bottom_agnostic', action='store_true',help='use when bottom tryon')
+        #parser.add_argument('--bottom_agnostic', action='store_true',help='use when bottom tryon')
         parser.add_argument('--augmentation', action='store_true',help='data augmentation')
 
         return parser
@@ -31,10 +31,14 @@ class VitonDataset(BaseDataset):
 
         ground_truth_parse_dir = osp.join(
             opt.dataroot, 'ground_truth_parse')
-        warped_cloth_img_dir = osp.join(
-            opt.dataroot, 'warped_cloth_img')
-        warped_cloth_mask_dir = osp.join(
-            opt.dataroot, 'warped_cloth_mask')
+        warped_cloth_top_img_dir = osp.join(
+            opt.dataroot, 'warped_cloth_top_img')
+        warped_cloth_top_mask_dir = osp.join(
+            opt.dataroot, 'warped_cloth_top_mask')
+        warped_cloth_bot_img_dir = osp.join(
+            opt.dataroot, 'warped_cloth_bot_img')
+        warped_cloth_bot_mask_dir = osp.join(
+            opt.dataroot, 'warped_cloth_bot_mask')
         densepose_label_dir = osp.join(
             opt.dataroot, 'densepose_label')
         openpose_json_dir = osp.join(
@@ -43,30 +47,59 @@ class VitonDataset(BaseDataset):
             opt.dataroot, 'ground_truth_img')
 
         self.ground_truth_parse_dir = ground_truth_parse_dir
-        self.warped_cloth_img_dir = warped_cloth_img_dir
-        self.warped_cloth_mask_dir = warped_cloth_mask_dir
+        self.warped_cloth_top_img_dir = warped_cloth_top_img_dir
+        self.warped_cloth_top_mask_dir = warped_cloth_top_mask_dir
+        self.warped_cloth_bot_img_dir = warped_cloth_bot_img_dir
+        self.warped_cloth_bot_mask_dir = warped_cloth_bot_mask_dir
         self.densepose_label_dir = densepose_label_dir
         self.openpose_json_dir = openpose_json_dir
         self.ground_truth_img_dir = ground_truth_img_dir
 
-        data_ids = [path.split('/')[-1].split('_')[0] for path in glob(osp.join(warped_cloth_img_dir, '*'))]
+        model_ids = [path.split('/')[-1].split('_')[0] for path in glob(osp.join(self.ground_truth_img_dir, '*'))]
+        mode = ""
+        if len(glob(os.path.join(self.warped_cloth_top_img_dir,'*')))>0:
+            mode += "top"
+        if len(glob(os.path.join(self.warped_cloth_bot_img_dir,'*')))>0:
+            mode += "bot"
+        if mode =="":
+            raise ValueError("no cloth")
+        else:
+            print(f"cloth mode:{mode}")
+        self.mode = mode
+        data_ids=[]
+        for model_id in model_ids:
+            if mode == "topbot":
+                if os.path.isfile(os.path.join(self.warped_cloth_top_img_dir,model_id+"_top.png")) and os.path.isfile(os.path.join(self.warped_cloth_bot_img_dir,model_id+"_btm.png")):
+                    data_ids.append(model_id)
+            elif mode == "top":
+                if os.path.isfile(os.path.join(self.warped_cloth_top_img_dir,model_id+"_top.png")):
+                    data_ids.append(model_id)
+            elif mode == "bot":
+                if os.path.isfile(os.path.join(self.warped_cloth_bot_img_dir,model_id+"_btm.png")):
+                    data_ids.append(model_id) 
 
         self.data_ids = data_ids
 
         self.dataset_size = len(data_ids)
 
-        self.bottom_agnostic = opt.bottom_agnostic
+        self.bottom_agnostic = True#opt.bottom_agnostic
 
 
 
     def __getitem__(self, index):
 
         ###############################################load data########################################################
-
         model_id = self.data_ids[index] 
         #model_id = '1657518529204' #
         cloth_id = self.data_ids[index]
-
+        if self.opt.augmentation:
+            mode = np.random.randint(3)
+            if mode ==0:
+                self.mode = "topbot"
+            elif mode ==1:
+                self.mode = "top"
+            else:
+                self.mode = "bot"
         # ground truth img
         ground_truth_img_path = osp.join(
             self.ground_truth_img_dir, model_id + '_model.jpg')
@@ -93,37 +126,56 @@ class VitonDataset(BaseDataset):
             pose_data = pose_data.reshape((-1, 3))[:, :2]
 
         part_arrays = self.get_part_arrays(ground_truth_parse, pose_data)
-        agnostic_mask = self.get_agnostic_mask(
-            part_arrays, bottom_agnostic=self.bottom_agnostic)
-        if self.opt.bottom_agnostic:
-            agnostic_mask = agnostic_mask[0]+agnostic_mask[1]+agnostic_mask[2]
-        else:
-            agnostic_mask = agnostic_mask[0]+agnostic_mask[1]+agnostic_mask[2]+agnostic_mask[3]
 
-        agnostic_mask_tensor = torch.from_numpy(agnostic_mask[np.newaxis,:,:])
-        agnostic_mask_tensor[agnostic_mask_tensor > 0] = 1
-        agnostic_mask_tensor[agnostic_mask_tensor < 0] = 0
-
-        cloth_type = 'btm' if self.bottom_agnostic else 'top'
+        agnostic_mask = np.zeros_like(ground_truth_parse)
+        if "top" in self.mode:
+            agnostic_mask_list = self.get_agnostic_mask(
+            part_arrays, bottom_agnostic=False)
+            agnostic_mask = agnostic_mask + agnostic_mask_list[0]+agnostic_mask_list[1]+agnostic_mask_list[2]+agnostic_mask_list[3]
+        if "bot" in self.mode:
+            agnostic_mask_list = self.get_agnostic_mask(
+            part_arrays, bottom_agnostic=True)
+            agnostic_mask = agnostic_mask + agnostic_mask_list[0]+agnostic_mask_list[1]+agnostic_mask_list[2]
+        
 
         # warped cloth image
-
-        warped_cloth_img_path = osp.join(
-            self.warped_cloth_img_dir, cloth_id + '_' + cloth_type + '.png')
-
-        warped_cloth_img = Image.open(warped_cloth_img_path)
-        warped_cloth_img = warped_cloth_img.convert('RGB')
-        warped_cloth_img_tensor = transform_img(warped_cloth_img)
+        warped_cloth_img_tensor = torch.zeros((6,agnostic_mask.shape[0],agnostic_mask.shape[1]),dtype=torch.float32)
+        if "top" in self.mode:
+            warped_cloth_img_path = osp.join(
+                self.warped_cloth_top_img_dir, cloth_id + '_top'  + '.png')
+            warped_cloth_img = Image.open(warped_cloth_img_path)
+            warped_cloth_img = warped_cloth_img.convert('RGB')
+            warped_cloth_img_tensor[0:3,:,:] = transform_img(warped_cloth_img)
+        if "bot" in self.mode:
+            warped_cloth_img_path = osp.join(
+                self.warped_cloth_bot_img_dir, cloth_id + '_btm'  + '.png')
+            warped_cloth_img = Image.open(warped_cloth_img_path)
+            warped_cloth_img = warped_cloth_img.convert('RGB')
+            warped_cloth_img_tensor[3:6,:,:] = transform_img(warped_cloth_img)
 
         # warped cloth mask
-        warped_cloth_mask_path = osp.join(
-            self.warped_cloth_mask_dir, cloth_id + '_' + cloth_type + '.png')
-        warped_cloth_mask = Image.open(warped_cloth_mask_path)
-        warped_cloth_mask = np.array(warped_cloth_mask.convert('L'))
-
-        warped_cloth_mask_tensor = torch.from_numpy(warped_cloth_mask[np.newaxis,:,:])  # FIXME
+        warped_cloth_mask = np.zeros((2,agnostic_mask.shape[0],agnostic_mask.shape[1]),dtype=np.float32)
+        if "top" in self.mode:
+            warped_cloth_mask_path = osp.join(
+                self.warped_cloth_top_mask_dir, cloth_id + '_top'  + '.png')
+            warped_cloth_mask[0,:,:] = (cv2.imread(warped_cloth_mask_path,0).astype(np.float32)/255.0)
+        if "bot" in self.mode:
+            warped_cloth_mask_path = osp.join(
+                self.warped_cloth_bot_mask_dir, cloth_id + '_btm'  + '.png')
+            warped_cloth_mask[1,:,:] = (cv2.imread(warped_cloth_mask_path,0).astype(np.float32)/255.0)
+        warped_cloth_mask_tensor = torch.tensor(warped_cloth_mask)
         warped_cloth_mask_tensor[warped_cloth_mask_tensor > 0] = 1
         warped_cloth_mask_tensor[warped_cloth_mask_tensor < 0] = 0
+        
+        warped_cloth_img_tensor[0:3,:,:]=warped_cloth_mask_tensor[0:1,:,:]*warped_cloth_img_tensor[0:3,:,:]
+        warped_cloth_img_tensor[0:3,:,:]+=(1-warped_cloth_mask_tensor[0:1,:,:])*warped_cloth_mask_tensor[1,:,:]\
+        *warped_cloth_img_tensor[3:6,:,:]
+        warped_cloth_img_tensor = warped_cloth_img_tensor[0:3,:,:]
+        warped_cloth_mask_tensor[0,:,:]+=(1-warped_cloth_mask_tensor[0,:,:])*warped_cloth_mask_tensor[1,:,:]
+        warped_cloth_mask_tensor = warped_cloth_mask_tensor[0:1,:,:]
+        #cv2.imwrite('warped_cloth_img.png',np.transpose(((warped_cloth_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0)))
+        
+
         # densepose label
         densepose_label_path = osp.join(
             self.densepose_label_dir, model_id + '_model.npy')
@@ -220,67 +272,64 @@ class VitonDataset(BaseDataset):
         new_densepose_label = np.transpose(new_densepose_label, (2, 0, 1))
         new_densepose_label_tensor = torch.from_numpy(new_densepose_label)
 
+        ###############################################
+
         if self.opt.augmentation:# data augmentation-agnostic_mask
-            agnostic_mask = cv2.dilate(agnostic_mask,np.ones((3,3)),iterations=np.random.randint(14)+1)
-            if cloth_type == "top":
-                agnostic_mask = agnostic_mask * (new_ground_truth_parse[0]+new_ground_truth_parse[1]
-                                                +((ground_truth_parse==10)*1).astype(np.float32) +new_ground_truth_parse[5])
-            else:
-                agnostic_mask = agnostic_mask * (new_ground_truth_parse[0] + new_ground_truth_parse[2]
-                                                 + new_ground_truth_parse[6])
+            agnostic_mask_dilate = cv2.dilate(agnostic_mask,np.ones((3,3)),iterations=np.random.randint(14)+1)
+           
+            allow_region = (new_ground_truth_parse[0]+agnostic_mask)
+            allow_region[allow_region>0]=1
+            allow_region[allow_region<0]=0
+            agnostic_mask = agnostic_mask_dilate * allow_region
             agnostic_mask_tensor = torch.from_numpy(agnostic_mask[np.newaxis, :, :])
             agnostic_mask_tensor[agnostic_mask_tensor > 0] = 1
             agnostic_mask_tensor[agnostic_mask_tensor < 0] = 0
-
+        ##########################################
         # inpaint mask
         inpaint_mask_tensor = (agnostic_mask_tensor - warped_cloth_mask_tensor)
         inpaint_mask_tensor[inpaint_mask_tensor > 0] = 1
         inpaint_mask_tensor[inpaint_mask_tensor < 0] = 0
 
-        if cloth_type == "top":
-            #swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[5] * warped_cloth_mask_tensor)
-            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[5])
-        else:
-            #swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * warped_cloth_mask_tensor)
-            swap_mask_tensor = (agnostic_mask_tensor - agnostic_mask_tensor * new_ground_truth_parse_tensor[6])
+        swap_cloth_mask_tensor = torch.zeros_like(inpaint_mask_tensor)
+        if "top" in self.mode:
+            swap_cloth_mask_tensor += new_ground_truth_parse_tensor[5] * torch.tensor(warped_cloth_mask[0:1,:,:])
+        if "bot" in self.mode:
+            swap_cloth_mask_tensor += new_ground_truth_parse_tensor[6] * torch.tensor(warped_cloth_mask[1:2,:,:])
+        swap_cloth_mask_tensor[swap_cloth_mask_tensor>0] =1
+        swap_cloth_mask_tensor[swap_cloth_mask_tensor<0]=0
+        swap_mask_tensor = agnostic_mask_tensor - swap_cloth_mask_tensor
         swap_mask_tensor[swap_mask_tensor > 0] = 1
         swap_mask_tensor[swap_mask_tensor < 0] = 0
-        #plt.imshow(np.transpose(((swap_mask_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))),plt.title('swap_mask_tensor'),plt.show()
-
+        #cv2.imwrite("inpaint_mask.png",np.transpose(((swap_mask_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0)))
 
         # inpaint img
         inpaint_img_tensor = (1-agnostic_mask_tensor)*(1-warped_cloth_mask_tensor)*ground_truth_img_tensor + \
             warped_cloth_mask_tensor * warped_cloth_img_tensor
-        #plt.imshow(np.transpose(((inpaint_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))),plt.title('inpaint img'),plt.show()
+        #cv2.imwrite("inpaint_img.png",np.transpose(((inpaint_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))[:,:,::-1])
 
-        if cloth_type == "top":
-            #swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-            #                 agnostic_mask_tensor * warped_cloth_mask_tensor *new_ground_truth_parse_tensor[5] * ground_truth_img_tensor
-            swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-                              agnostic_mask_tensor * new_ground_truth_parse_tensor[5] * ground_truth_img_tensor
-        else:
-            #swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-            #                  agnostic_mask_tensor * warped_cloth_mask_tensor * new_ground_truth_parse_tensor[
-            #                      6] * ground_truth_img_tensor
-            swap_img_tensor = (1 - agnostic_mask_tensor) * ground_truth_img_tensor + \
-                              agnostic_mask_tensor * new_ground_truth_parse_tensor[6] * ground_truth_img_tensor
-        #plt.imshow(np.transpose(((swap_img_tensor.numpy() + 1) / 2 * 255).astype(np.uint8), (1, 2, 0))), plt.title('swap img'), plt.show()
+        swap_cloth_tensor = torch.zeros_like(warped_cloth_img_tensor)
+        if "top" in self.mode:
+            swap_cloth_tensor += new_ground_truth_parse_tensor[5] * ground_truth_img_tensor * torch.tensor(warped_cloth_mask[0:1,:,:])
+        if "bot" in self.mode:
+            swap_cloth_tensor += new_ground_truth_parse_tensor[6] * ground_truth_img_tensor * torch.tensor(warped_cloth_mask[1:2,:,:])
+        swap_img_tensor = (1-agnostic_mask_tensor)*(1-swap_cloth_mask_tensor)*ground_truth_img_tensor + swap_cloth_tensor
+        #cv2.imwrite("inpaint_img.png",np.transpose(((swap_img_tensor.numpy()+1)/2*255).astype(np.uint8),(1,2,0))[:,:,::-1])
+
         # inpaint parse
         inpaint_parse_tensor = new_ground_truth_parse_tensor*(1-agnostic_mask_tensor)*(1-warped_cloth_mask_tensor)
         for i in range(5):
             inpaint_parse_tensor[i:i+1,:,:] += new_densepose_label_tensor[i:i+1,:,:]*inpaint_mask_tensor
-        if cloth_type == "top":
-            inpaint_parse_tensor[5:6,:,:] += warped_cloth_mask_tensor
-        else:
-            inpaint_parse_tensor[6:7,:,:] += warped_cloth_mask_tensor
+        inpaint_parse_tensor[5:6,:,:] += torch.tensor(warped_cloth_mask[0:1,:,:])
+        inpaint_parse_tensor[6:7,:,:] += torch.tensor(warped_cloth_mask[1:2,:,:]) * (1-torch.tensor(warped_cloth_mask[0:1,:,:]))
 
-        swap_parse_tensor = new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor)
+        #swap_parse_tensor = inpaint_parse_tensor.clone()
+        swap_parse_tensor = new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor)*(1-swap_cloth_mask_tensor)
         for i in range(5):
             swap_parse_tensor[i:i+1,:,:] += new_densepose_label_tensor[i:i+1,:,:] * swap_mask_tensor
-        if cloth_type == "top":
-            swap_parse_tensor[5:6,:,:] += new_ground_truth_parse_tensor[5:6,:,:] * agnostic_mask_tensor
-        else:
-            swap_parse_tensor[6:7,:,:] += new_ground_truth_parse_tensor[6:7,:,:] * agnostic_mask_tensor
+        swap_parse_tensor[5:6,:,:] += new_ground_truth_parse_tensor[5:6,:,:]*torch.tensor(warped_cloth_mask[0:1,:,:]) #* agnostic_mask_tensor
+        swap_parse_tensor[6:7,:,:] += new_ground_truth_parse_tensor[6:7,:,:]*torch.tensor(warped_cloth_mask[1:2,:,:]) * (1-torch.tensor(warped_cloth_mask[0:1,:,:]))#* agnostic_mask_tensor
+        #cv2.imwrite('inpaint_parse.png',util.tensor2label(swap_parse_tensor, swap_parse_tensor.shape[0])*255)
+        #exit(0)
         inpaint_skin_mask_tensor = inpaint_parse_tensor[1:2,:,:] + inpaint_parse_tensor[3:4,:,:]+inpaint_parse_tensor[4:5,:,:]#+inpaint_parse_tensor[2:3,:,:]
         swap_skin_mask_tensor = swap_parse_tensor[1:2,:,:] + swap_parse_tensor[3:4,:,:]+swap_parse_tensor[4:5,:,:]#+swap_parse_tensor[2:3,:,:]
 
@@ -301,7 +350,7 @@ class VitonDataset(BaseDataset):
             swap_parse_tensor = torch.cat((new_ground_truth_parse_tensor * (1 - agnostic_mask_tensor),
                                            agnostic_mask_tensor * new_ground_truth_parse_tensor[6],
                                            new_densepose_label_tensor * swap_mask_tensor), dim=0)
-'''
+        '''
         #print(swap_img_tensor[:,56,43])
         #print(swap_img_tensor[:,401,468])
         '''plt.subplot(2,3,1),plt.imshow(util.tensor2label(new_ground_truth_parse_tensor, 8)),plt.title('new ground truth parse')
@@ -345,9 +394,10 @@ class VitonDataset(BaseDataset):
             separate feet from legs for bottom
             separate hands from arms for upper
         '''
-
+        parse_clone = parse.copy()
+        parse_clone[parse_clone>19]=0
         # 1. separate each labels  @TODO why float?
-        parse_array = np.array(parse)
+        parse_array = np.array(parse_clone)
         parse_background = (parse_array == 0).astype(np.float32)
         parse_head = ((parse_array == 4).astype(np.float32) +
                       (parse_array == 13).astype(np.float32))

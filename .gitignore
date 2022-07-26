@@ -9,6 +9,6 @@ train.sh
 #ignore shell
 flask_viewer.sh
 #ignore dataset
-dataset/baek_sample/
+dataset/Fashionade_TOP_BOT/
 #ignore wandb
 wandb/
